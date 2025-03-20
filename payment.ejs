@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h2>Payment for "<%= book.title %>"</h2>
+    <form action="/books/confirm-borrow" method="POST">
+        <input type="hidden" name="bookId" value="<%= book._id %>">
+
+        <label>Select Payment Method:</label>
+        <select name="paymentMethod" required>
+            <option value="Credit Card">Credit Card</option>
+            <option value="UPI">UPI</option>
+            <option value="Net Banking">Net Banking</option>
+            <option value="Cash on Delivery">Cash on Delivery</option>
+        </select>
+
+        <button type="submit">Confirm Payment & Borrow</button>
+    </form>
+</body>
+</html>
+

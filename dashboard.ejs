@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Library Dashboard</h2>
+        <a href="/logout"><button>Logout</button></a>
+
+        <h3>Add New Book</h3>
+        <form action="/books/add" method="POST">
+            <input type="text" name="title" placeholder="Book Title" required>
+            <input type="text" name="author" placeholder="Author" required>
+            <!-- Manually enter Issue Date -->
+            <input type="date" name="issueDate" required>
+            <!-- Manually enter Return Date -->
+            <input type="date" name="returnDate" required>
+            <button type="submit">Add Book</button>
+        </form>
+
+        <h3>Books List</h3>
+        <% if (books.length === 0) { %>
+            <p>No books available.</p>
+        <% } else { %>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Status</th>
+                        <th>Issue Date</th>
+                        <th>Return Date</th>
+                        <th>Fine</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% books.forEach(book => { %>
+                        <tr>
+                            <td><%= book.title %></td>
+                            <td><%= book.author %></td>
+                            <td><%= book.status %></td>
+                            <td>
+                                <!-- Issue Date (editable) -->
+                                <input type="date" value="<%= book.issueDate ? new Date(book.issueDate).toISOString().split('T')[0] : '' %>" 
+                                    data-id="<%= book._id %>" class="issue-date-input">
+                            </td>
+                            <td>
+                                <!-- Return Date (editable) -->
+                                <input type="date" value="<%= book.returnDate ? new Date(book.returnDate).toISOString().split('T')[0] : '' %>" 
+                                    data-id="<%= book._id %>" class="return-date-input">
+                            </td>
+                            
+                            <td>
+                                <% if (book.status === "Borrowed" && book.returnDate && new Date() > new Date(book.returnDate)) { %>
+                                    ₹<%= Math.ceil((new Date() - new Date(book.returnDate)) / (1000 * 60 * 60 * 24)) * 10 %>  
+                                    <a href="/books/pay-fine/<%= book._id %>">💳 Pay Fine</a>
+                                <% } else { %>
+                                    ₹0
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (book.status === "Available") { %>
+                                    <a href="/books/borrow/<%= book._id %>">📖 Borrow</a>
+                                <% } else { %>
+                                    <a href="/books/return/<%= book._id %>">🔄 Return</a>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+            
+            <!-- Payment Button -->
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="/payment" class="button" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">💳 Proceed to Payment</a>
+            </div>
+            
+        <% } %>
+    </div>
+
+    <!-- Include script to handle date changes and update on the backend -->
+    <script>
+        // Handle date changes and send them to the server
+        document.querySelectorAll('.issue-date-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const bookId = this.dataset.id;
+                const issueDate = this.value;
+
+                fetch(`/books/update-date/${bookId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ issueDate })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert("Issue Date Updated!");
+                      } else {
+                          alert("Failed to update Issue Date");
+                      }
+                  });
+            });
+        });
+
+        document.querySelectorAll('.return-date-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const bookId = this.dataset.id;
+                const returnDate = this.value;
+
+                fetch(`/books/update-date/${bookId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ returnDate })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert("Return Date Updated!");
+                      } else {
+                          alert("Failed to update Return Date");
+                      }
+                  });
+            });
+        });
+    </script>
+</body>
+</html>
